@@ -1,6 +1,5 @@
 #include <array>
 #include <cstdlib>
-#include <iostream>
 
 const bool BLOCKS[7][4][4][4] = // [type][orientation][y][x]
 {
@@ -106,21 +105,21 @@ const bool BLOCKS[7][4][4][4] = // [type][orientation][y][x]
 	  {1, 0, 0, 0},
 	  {0, 0, 0, 0}}},
 	  
-	{{{0, 0, 0, 0},
+	{{{0, 1, 1, 0},
 	  {0, 1, 1, 0},
-	  {0, 1, 1, 0},
+	  {0, 0, 0, 0},
 	  {0, 0, 0, 0}},
-	 {{0, 0, 0, 0},
+	 {{0, 1, 1, 0},
 	  {0, 1, 1, 0},
-	  {0, 1, 1, 0},
+	  {0, 0, 0, 0},
 	  {0, 0, 0, 0}},
-	 {{0, 0, 0, 0},
+	 {{0, 1, 1, 0},
 	  {0, 1, 1, 0},
-	  {0, 1, 1, 0},
+	  {0, 0, 0, 0},
 	  {0, 0, 0, 0}},
-	 {{0, 0, 0, 0},
+	 {{0, 1, 1, 0},
 	  {0, 1, 1, 0},
-	  {0, 1, 1, 0},
+	  {0, 0, 0, 0},
 	  {0, 0, 0, 0}}}
 };
 	  
@@ -132,10 +131,11 @@ class Block{
 								  // position.first - y-coord, position.second - x-coord
 	
 	public:
-	Block();
+	Block(int pos_x);
 	void rotate_right();
 	void rotate_left();
 	std::array<std::array<bool, 4>, 4> get_shape();
+	int get_type();
 	void move_right();
 	void move_left();
 	void move_down();

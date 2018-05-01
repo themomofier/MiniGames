@@ -1,6 +1,6 @@
 #include "Block.h"
 
-Block::Block(){
+Block::Block(int pos_x){
 	srand(clock());
 	type = rand() % 7;
 	for(int i = 0; i < 4; i++){
@@ -10,7 +10,7 @@ Block::Block(){
 	}
 	
 	position.first = 0;
-	position.second = 10 / 2 - 2; //fix so doesn't need grid width;
+	position.second = pos_x; 
 }
 
 void Block::rotate_right(){
@@ -33,30 +33,18 @@ void Block::rotate_left(){
 	}
 }
 
-std::array<std::array<bool, 4>, 4> Block::get_shape(){
-	return shape;
-}
+std::array<std::array<bool, 4>, 4> Block::get_shape(){ return shape; }
 
-void Block::move_right(){
-	position.second++;
-}
+int Block::get_type(){ return type; }
 
-void Block::move_left(){
-	position.second--;
-}
+void Block::move_right(){ position.second++; }
 
-void Block::move_down(){
-	position.first++;
-}
+void Block::move_left() { position.second--; }
 
-void Block::move_up(){
-	position.first--;
-}
+void Block::move_down() { position.first++;  }
 
-int Block::get_y(){
-	return position.first;
-}
+void Block::move_up()   { position.first--;  }
 
-int Block::get_x(){
-	return position.second;
-}
+int Block::get_y(){ return position.first;  }
+
+int Block::get_x(){ return position.second; }

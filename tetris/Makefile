@@ -10,7 +10,7 @@ main.o: main.cc Block.h Game.h
 Block.o: Block.cc Block.h
 	$(CXX) $(CXXFLAGS) -c Block.cc
 
-Board.o: Game.cc Game.h Block.h
+Game.o: Game.cc Game.h Block.h
 	$(CXX) $(CXXFLAGS) -c Game.cc
 
 clean:

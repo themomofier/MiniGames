@@ -1,22 +1,29 @@
 #include "Game.h"
 #include <iostream>
 #include <ctime>
-#include <array>
 #include <ncurses.h>
 #include <sstream>
+#include <chrono>
 using namespace std;
 
-const double DELAY = 1.0; //seconds
+const double DELAY = 0.5; //seconds
 
 const int SQUARE_WIDTH = 4;
 const int SQUARE_HEIGHT = 2;
 const char SQUARE[SQUARE_HEIGHT][SQUARE_WIDTH] = 
 	{{'#', '#', '#', ' '},
 	 {'#', '#', '#', ' '}};
+	 
+const char EMPTY_SQUARE[SQUARE_HEIGHT][SQUARE_WIDTH] = 
+	{{' ', ' ', ' ', '|'},
+	 {' ', ' ', ' ', '|'}};
 
 const char BORDER = 'H';
+const int BORDER_COLOR = 9;
+const int CONTENT_COLOR = 8;
 
 void print_border(){
+	attron(COLOR_PAIR(BORDER_COLOR));
 	for(int x = 0; x < GRID_WIDTH * SQUARE_WIDTH + 2; x++){
 		mvaddch(0, x, BORDER);
 		mvaddch(GRID_HEIGHT * SQUARE_HEIGHT + 1, x, BORDER);
@@ -25,10 +32,45 @@ void print_border(){
 		mvaddch(y, 0, BORDER);
 		mvaddch(y, GRID_WIDTH * SQUARE_WIDTH + 1, BORDER);
 	}
+	attroff(COLOR_PAIR(BORDER_COLOR));
 }
 
-void print_square(int y_coord, int x_coord, bool present = true, bool del = false){
-	if(present){
+void print_game_over(int score){
+
+	int min_x = GRID_WIDTH * SQUARE_WIDTH / 2 - 9;
+	int min_y = GRID_HEIGHT * SQUARE_HEIGHT / 2 - 6;
+	stringstream ss;
+	ss << score;
+	
+	attron(COLOR_PAIR(BORDER_COLOR));
+	for(int x = 0; x < 19; x++){
+		mvaddch(min_y, min_x + x, BORDER);
+		mvaddch(min_y + 4, min_x + x, BORDER);
+		mvaddch(min_y + 7, min_x + x, BORDER);
+		mvaddch(min_y + 10, min_x + x, BORDER);
+	}
+	for(int y = 0; y < 11; y++){
+		mvaddch(min_y + y, min_x, BORDER);
+		mvaddch(min_y + y, min_x + 18, BORDER);
+	}
+	attroff(COLOR_PAIR(BORDER_COLOR));
+	
+	attron(COLOR_PAIR(CONTENT_COLOR));
+	mvprintw(min_y + 1,  min_x + 1, "                 ");
+	mvprintw(min_y + 2,  min_x + 1, "    GAME OVER!   ");
+	mvprintw(min_y + 3,  min_x + 1, "                 ");
+	mvprintw(min_y + 5, min_x + 1, " your score was: ");
+	mvprintw(min_y + 6, min_x + 1, "                 ");
+	mvprintw(min_y + 6, min_x + 6, ss.str().c_str());
+	mvprintw(min_y + 8, min_x + 1, "  press any key  ");
+	mvprintw(min_y + 9, min_x + 1, "    to restart   ");
+	attroff(COLOR_PAIR(CONTENT_COLOR));
+	
+}
+
+void print_square(int y_coord, int x_coord, Square sqr, bool del = false){
+	if(sqr.present){
+		attron(COLOR_PAIR(sqr.color + 1));
 		for(int y = 0; y < SQUARE_HEIGHT; y++){
 			for(int x = 0; x < SQUARE_WIDTH; x++){
 				mvaddch(y_coord * SQUARE_HEIGHT + y + 1, 
@@ -36,42 +78,25 @@ void print_square(int y_coord, int x_coord, bool present = true, bool del = fals
 						SQUARE[y][x]);
 			}
 		}
+		attroff(COLOR_PAIR(sqr.color + 1));
 	}else if(del){
+		attron(COLOR_PAIR(8));
 		for(int y = 0; y < SQUARE_HEIGHT; y++){
 			for(int x = 0; x < SQUARE_WIDTH; x++){
 				mvaddch(y_coord * SQUARE_HEIGHT + y + 1, 
 						x_coord * SQUARE_WIDTH + x + 1, 
-						' ');
+						EMPTY_SQUARE[y][x]);
 			}
 		}
+		attroff(COLOR_PAIR(8));
 	}	
-}
-
-void delete_square(int y_coord, int x_coord, bool present = true){
-	if(present){
-		for(int y = 0; y < SQUARE_HEIGHT; y++){
-			for(int x = 0; x < SQUARE_WIDTH; x++){
-				mvaddch(y_coord * SQUARE_HEIGHT + y + 1, 
-						x_coord * SQUARE_WIDTH + x + 1, 
-						' ');
-			}
-		}
-	}	
-}
-
-void delete_block(Block block){
-	for(int y = 0; y < 4; y++){
-		for(int x = 0; x < 4; x++){
-			delete_square(block.get_y() + y, block.get_x() + x, block.get_shape()[y][x]);
-		}
-	}
 }
 
 void print_block(Block block){
-	
 	for(int y = 0; y < 4; y++){
 		for(int x = 0; x < 4; x++){
-			print_square(block.get_y() + y, block.get_x() + x, block.get_shape()[y][x]);
+			print_square(block.get_y() + y, block.get_x() + x, 
+						 {block.get_shape()[y][x], block.get_type()});
 		}
 	}
 }
@@ -90,87 +115,92 @@ void print_game(Game game){
 }
 
 int main(){
-
-
-	array<array<bool, GRID_WIDTH>, GRID_HEIGHT> board;
-	for(int i = 0; i < GRID_HEIGHT; i++){
-		for(int j = 0; j < GRID_WIDTH; j++){
-			board[i][j] = 0;
-		}
-	}
-	board[17][9] = 1;
-	board[16][8] = 1;
-	board[17][8] = 1;
-	board[16][9] = 1;
 	
-	
-	bool game_over = false;
+	bool quit = false;
 	initscr();
-	printw("Hello World !!!");
 	refresh();
 	cbreak();
 	noecho();
 	curs_set(0);
 	keypad(stdscr, TRUE);
-	timeout(0);
-
-	//Block block;
-	Game game;
-
-	clock_t start = clock();
-
-	print_border();
+	start_color();
 	
-	while(!game_over){
-		int c = getch();
-		if(c != ERR){
-			delete_block(game.get_block());
-			switch(c){
-				case 'q':
-				case 'Q':
-					game_over = true;
-					break;
-				case KEY_UP:
-					game.rotate_block();
-					//block.rotate();
-					break;
-				case KEY_LEFT:
-					game.move_block_left();
-					//block.move_left();
-					break;
-				case KEY_RIGHT:
-					game.move_block_right();
-					//block.move_right();
-					break;
-				case KEY_DOWN:
-					game.move_block_down();
-					//block.move_down();
-					break;
-				case ' ':
-					game.drop_block();
-					break;
+	init_pair(1, COLOR_RED, COLOR_RED);       //corresponds with block type 0
+	init_pair(2, COLOR_GREEN, COLOR_GREEN);
+	init_pair(3, COLOR_YELLOW, COLOR_YELLOW);
+	init_pair(4, COLOR_BLUE, COLOR_BLUE);
+	init_pair(5, COLOR_MAGENTA, COLOR_MAGENTA);
+	init_pair(6, COLOR_CYAN, COLOR_CYAN);
+	init_pair(7, COLOR_WHITE, COLOR_WHITE);
+	
+	init_pair(CONTENT_COLOR, COLOR_WHITE, COLOR_BLACK);
+	init_pair(BORDER_COLOR, COLOR_BLUE, COLOR_BLUE);
+
+	chrono::system_clock::time_point start, end;
+	//clock_t start, end;
+	//time_t start, end
+	int diff;
+	int c;
+	
+	while(!quit){
+	
+		Game game;
+		print_border(); 
+		print_game(game);
+		timeout(0);
+		double multiplier = 1;
+		start = chrono::system_clock::now();
+		//start = clock();
+	
+		while(!game.is_game_over() && !quit){
+			c = getch();
+			if(c != ERR){
+				switch(c){
+					case 'q':
+					case 'Q':
+						quit = true;
+						break;
+					case KEY_UP:
+						game.rotate_block();
+						break;
+					case KEY_LEFT:
+						game.move_block_left();
+						break;
+					case KEY_RIGHT:
+						game.move_block_right();
+						break;
+					case KEY_DOWN:
+						game.move_block_down();
+						break;
+					case ' ':
+						game.drop_block();
+						cout << "" << endl;
+						break;
+				}
 			}
 			
-			//print_block(game.get_block());
-		}
-		
-		
-		if(clock() - start >= DELAY * CLOCKS_PER_SEC){
-			start = clock();
-			delete_block(game.get_block());
-			game.move_block_down();
-			//print_block(game.get_block());
-
+			end = chrono::system_clock::now();
+			diff = chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+			//end = clock();
+			//diff = double(end - start);
 			
-			//check if lines should be cleared
-			//clear lines if so
-			//check if game over
-		}
+			if(diff >= DELAY * 1000000 /*/ multiplier*/){
+				start = end;
+				game.move_block_down();
+				//multiplier += 0.006;
+			}
 
-		print_game(game);
+			print_game(game);
+		}
 		
+		quit = false;
+		print_game_over(game.get_score());
+		timeout(-1);
+		c = getch();
+		if(c == 'q' || c == 'Q'){
+			quit = true;
+		}		
 		
-		refresh();
 	}
 	endwin();
 	return 0;
