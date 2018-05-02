@@ -1,6 +1,8 @@
 #include <ncurses.h>
 #include <ctime>
 #include <cmath>
+#include <sstream>
+
 using namespace std;
 
 void wait_ticks(int ticks) {
@@ -20,12 +22,12 @@ void words(int frame) {
 			mvprintw(y+line++,x,"  Y88888P  dP    dP `88888P8 dP   `YP `88888P' 	");
 			mvprintw(y+line++,x," oooooooooooooooooooooooooooooooooooooooooooooo	");
 			mvprintw(y+line++,x," 										 			");
-			mvprintw(y+line++,x,"                          .-=-.           .--.		");
-			mvprintw(y+line++,x,"            __         .'      '.        /  '  )	");
-			mvprintw(y+line++,x,"   _      .'   '.     /   .-.    .      /   .-'  	");
-			mvprintw(y+line++,x,"  (  '   /  .-.  '   /   /    .   .    /   /      	");
-			mvprintw(y+line++,x,"   '  `-`  /   '  `-'   /      .    `-`   /		");
-			mvprintw(y+line++,x,"     `-.-`      '.____.'        `..____ .'			");
+			mvprintw(y+line++,x,"                         .-=-.           .--.		");
+			mvprintw(y+line++,x,"           __         .'      '.        /  '  )	");
+			mvprintw(y+line++,x,"  _      .'   '.     /   .-.    .      /   .-'  	");
+			mvprintw(y+line++,x," (  '   /  .-.  '   /   /    .   .    /   /      	");
+			mvprintw(y+line++,x,"  '  `-`  /   '  `-'   /      .    `-`   /			");
+			mvprintw(y+line++,x,"    `-.-`      '.____.'        `..____ .'			");
 			mvprintw(y+line++,x,"   ");
 			mvprintw(y+line++,x," 	");
 			mvprintw(y+line++,x," 	");
@@ -38,6 +40,7 @@ void words(int frame) {
 }
 
 void splash() {
+
 	int x = 0, y = 0; //Holds offsets to draw the ASCII art
 	for (int i = 0; i < 120; i++) {
 		timeout(10);
@@ -54,3 +57,5 @@ void splash() {
 	wait_ticks(0.75 * CLOCKS_PER_SEC);
 	clear();
 }
+
+
