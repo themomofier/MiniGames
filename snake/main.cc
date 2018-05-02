@@ -9,19 +9,58 @@
 #include <queue>
 #include <set>
 #include "Snake.h"
-//#include "splash.h"
+#include "Title.h"
 using namespace std;
 
-const int SIZE_X = 30;
+const int SIZE_X = 40;
 const int SIZE_Y = 30;  
 const unsigned int TIMEOUT = 200; 
 const int UP = 65; 
 const int DOWN = 66;
 const int LEFT = 68;
 const int RIGHT = 67;
+int apple_x = rand() % SIZE_X + 1;
+int apple_y = rand() % SIZE_Y + 1;
+Body snakes;
+
+void draw_board() {
+	attron(COLOR_PAIR(7));
+	for (int i = 0; i <= SIZE_X; i++) {
+		mvaddch(0, i, ' ' | A_REVERSE);
+		mvaddch(SIZE_Y, i, ' ' | A_REVERSE);
+	}
+	for (int i = 0; i <= SIZE_Y; i++) {
+		mvaddch(i, 0, ' ' | A_REVERSE);
+		mvaddch(i, SIZE_X, ' ' | A_REVERSE);
+	}
+	attroff(COLOR_PAIR(7));
+}
+
+void draw_snake() {
+	Snake* curr = snakes.get_front();
+	while (curr) {
+		attron(COLOR_PAIR(3));
+		mvaddch(curr->get_y(), curr->get_x(), ' ' | A_REVERSE);
+		curr = curr->get_next();
+		
+		//Collision check
+		
+		attroff(COLOR_PAIR(3));
+	}
+}
+
+void draw_apple(int y, int x) {
+	attron(COLOR_PAIR(5));
+	mvaddch(y, x, ' '| A_REVERSE);
+	attroff(COLOR_PAIR(5));
+}
 
 int main()
 {
+	bool game_over = false;
+	int direction = 2;
+	int points = 0;
+
 	srand(time(NULL));
 	initscr();
 	start_color();
@@ -31,33 +70,25 @@ int main()
 	init_pair(4,COLOR_YELLOW,COLOR_BLACK);
 	init_pair(5,COLOR_RED,COLOR_BLACK);
 	init_pair(6,COLOR_MAGENTA,COLOR_BLACK);
-	//clear();
+	init_pair(7,COLOR_BLUE,COLOR_BLACK);
+	clear();
 	noecho();
-	//cbreak();
+	cbreak();
 	curs_set(0);
 	timeout(TIMEOUT);
 
 	//Splash Screen
-	//splash();
-	//timeout(TIMEOUT);
-	//clear();
-
-	bool game_over = false;
-	int direction = 2;
-	int apple_x = rand() % SIZE_X + 1;
-	int apple_y = rand() % SIZE_Y + 1;
+	splash();
+	timeout(TIMEOUT);
+	clear();
 		
-	Body snakes; //List holding the snake
+	//Initial Snake
 	for (int i = 0; i < 4; i++) 
-		snakes.add_front((SIZE_X/2), (SIZE_Y/2) + i); //Generating initial snake
-
-//	draw_board();
+		snakes.add_front((SIZE_X/2) + i, (SIZE_Y/2)); 
 	
-	//Will loop until game ends
 	while (!game_over) {
-		//Printing stuff
-		mvprintw(SIZE_X+1,0,"Use arrow keys to move the cursor around");
-		
+		draw_board();
+		mvprintw(SIZE_Y + 1, 0, "Points: %i", points);
 		//Movement cases
 		int ch = getch(); // Wait for user input, with TIMEOUT delay
 		switch(ch) {
@@ -78,49 +109,44 @@ int main()
 				break;
 		}
 
+		//Determine path
         Snake* path = snakes.get_front();
 		int path_x = path->get_x();
 		int path_y = path->get_y();
 		
 		//Movement
-		if (direction == 1) path_x--;
-		else if (direction == 2) path_y++;
-		else if (direction == 3) path_x++;
-		else if (direction == 4) path_y--;
-		
+		if (direction == 1) path_y--;
+		else if (direction == 2) path_x++;
+		else if (direction == 3) path_y++;
+		else if (direction == 4) path_x--;
+
 		snakes.add_front(path_x, path_y);
-		
+
 		//Check for apple
-		if (path_x == apple_y && path_y == apple_x) {
+		if (path_x == apple_x && path_y == apple_y) {
+			
 			//Respawn apple
-			apple_x = rand() % SIZE_X + 1;
-			apple_y = rand() % SIZE_Y + 1;
+			apple_x = rand() % (SIZE_X - 1) + 1;
+			apple_y = rand() % (SIZE_Y - 1) + 1;
+			
 			//Add points
+			points++;
 		}
 		else {
 			snakes.pop_back();
 		}
 
-		erase();
-		mvaddch(apple_y, apple_x, 'o');
+		//Collision
+		if (path_y == SIZE_Y || path_x == SIZE_X || path_y == 0 || path_x == 0)
+	      game_over = true;
 
-		//Tracking snake position
-		Snake* curr = snakes.get_front();
-		while (curr) {
-			mvaddch(curr->get_x(), curr->get_y(), 'O');
-			curr = curr->get_next();
-			//Collision check
-		}
+		erase();	
+		draw_apple(apple_y, apple_x);
+		draw_snake();
 		refresh();
 	}
-//	clear();
-//	print_board();
-	timeout(-1);
-	erase();
-	refresh();
-	//wait_ticks(300000);
-	endwin(); // End curses mode
-	system("clear");
 
+	timeout(-1);
+	endwin(); // End curses mode
 	return 0;
 }
