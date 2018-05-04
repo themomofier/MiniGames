@@ -1,126 +1,216 @@
 #include <iostream>
-#include <cmath>
+#include <algorithm>
 #include <ctime>
-#include <cstdlib>
 #include <ncurses.h>
-#include <utility>
-#include <limits>
-#include <vector>
-#include <queue>
+#include <chrono>
 #include <set>
+#include <sstream>
+#include <fstream>
+#include <vector>
 #include "Snake.h"
-//#include "splash.h"
+#include "Title.h"
 using namespace std;
 
-const int SIZE_X = 30;
+const int SIZE_X = 40;
 const int SIZE_Y = 30;  
-const unsigned int TIMEOUT = 200; 
-const int UP = 65; 
-const int DOWN = 66;
-const int LEFT = 68;
-const int RIGHT = 67;
+const int TIMEOUT = 130; 
+const char BORDER = ' ';
+const char SNAKE = ' ';
+const char APPLE = ' ';
+int apple_x = rand() % SIZE_X + 1;
+int apple_y = rand() % SIZE_Y + 1;
+bool game_over = false;
+Body snakes;
 
-int main()
-{
+void draw_board() {
+	attron(COLOR_PAIR(7));
+	for (int i = 0; i <= SIZE_X; i++) {
+		mvaddch(0, i, BORDER);
+		mvaddch(SIZE_Y, i, BORDER);
+	}
+	for (int i = 0; i <= SIZE_Y; i++) {
+		mvaddch(i, 0, BORDER);
+		mvaddch(i, SIZE_X, BORDER);
+	}
+	attroff(COLOR_PAIR(7));
+}
+
+void draw_snake(int x, int y) {
+	Snake* curr = snakes.get_front();
+	while (curr) {
+		attron(COLOR_PAIR(3));
+		
+		mvaddch(curr->get_y(), curr->get_x(), SNAKE);
+		if (curr->get_x() == x && curr->get_y() == y && curr != snakes.get_front()) game_over = true;
+		curr = curr->get_next();
+		attroff(COLOR_PAIR(3));
+	}
+}
+
+void draw_apple(int y, int x) {
+	attron(COLOR_PAIR(5));
+	mvaddch(y, x, APPLE);
+	attroff(COLOR_PAIR(5));
+}
+
+void print_game_over(int points){
+	int min_x = SIZE_X / 2 - 9;
+	int min_y = SIZE_Y / 2 - 6;
+
+	stringstream ss;
+	ss << points;
+	attron(COLOR_PAIR(7));
+	for(int x = 0; x < 19; x++){
+		mvaddch(min_y, min_x + x, BORDER);
+		mvaddch(min_y + 4, min_x + x, BORDER);
+		mvaddch(min_y + 7, min_x + x, BORDER);
+		mvaddch(min_y + 10, min_x + x, BORDER);
+	}
+	
+	for(int y = 0; y < 11; y++){
+		mvaddch(min_y + y, min_x, BORDER | A_REVERSE);
+		mvaddch(min_y + y, min_x + 18, BORDER | A_REVERSE);
+	}
+	attroff(COLOR_PAIR(7));
+									
+	attron(COLOR_PAIR(1));
+	mvprintw(min_y + 1,  min_x + 1, "                 ");
+	mvprintw(min_y + 2,  min_x + 1, "    GAME OVER!   ");
+	mvprintw(min_y + 3,  min_x + 1, "                 ");
+	mvprintw(min_y + 5, min_x + 1, 	" Your score was: ");
+	mvprintw(min_y + 6, min_x + 1, 	"                 ");
+	mvprintw(min_y + 6, min_x + 6, ss.str().c_str());
+	mvprintw(min_y + 8, min_x + 1, 	"  Press any key  ");
+	mvprintw(min_y + 9, min_x + 1, 	"    to quit.   ");
+	attroff(COLOR_PAIR(1));																			
+}
+
+//bool compare_score(const Player &a, const Player &b) {
+//	return a.get_score() < b.get_score();
+//}
+
+void save_score(string name, int points) {
+	ofstream highscores ("Highscores", ios::app);
+	if (highscores.is_open()) {
+		if (points < 10 ) {
+			highscores << name << "          00" << points << endl;
+		}
+		else if (points < 100) {
+			highscores << name << "          0" << points << endl;
+		}
+		else 
+			highscores << name << "          " << points << endl;
+		highscores.close();
+	}
+}
+
+void print_highscores() {
+	string line;
+	int min_x = SIZE_X + 3;
+	int min_y = 3;
+	mvprintw(1, min_x, 		"    HIGSCORES");
+	mvprintw(2, min_x, 		"=================");
+	ifstream highscores ("Highscores");
+	if (highscores.is_open()) {
+		while (getline(highscores, line)) {
+			mvprintw(min_y, min_x, line.c_str());
+			min_y++;
+		}
+	}
+}
+
+int main() {
+	int direction = 2;
+	int points = 0;
+	float speed = 1;
+
 	srand(time(NULL));
 	initscr();
-	start_color();
-	init_pair(1,COLOR_WHITE,COLOR_BLACK);
-	init_pair(2,COLOR_CYAN,COLOR_BLACK);
-	init_pair(3,COLOR_GREEN,COLOR_BLACK);
-	init_pair(4,COLOR_YELLOW,COLOR_BLACK);
-	init_pair(5,COLOR_RED,COLOR_BLACK);
-	init_pair(6,COLOR_MAGENTA,COLOR_BLACK);
-	//clear();
+	refresh();
+	cbreak();
 	noecho();
-	//cbreak();
 	curs_set(0);
-	timeout(TIMEOUT);
+	keypad(stdscr, TRUE);
+	start_color();
 
-	//Splash Screen
-	//splash();
-	//timeout(TIMEOUT);
-	//clear();
-
-	bool game_over = false;
-	int direction = 2;
-	int apple_x = rand() % SIZE_X + 1;
-	int apple_y = rand() % SIZE_Y + 1;
-		
-	Body snakes; //List holding the snake
-	for (int i = 0; i < 4; i++) 
-		snakes.add_front((SIZE_X/2), (SIZE_Y/2) + i); //Generating initial snake
-
-//	draw_board();
+	init_pair(1,COLOR_WHITE,COLOR_BLACK);
+	init_pair(3,COLOR_GREEN,COLOR_GREEN);
+	init_pair(4,COLOR_YELLOW,COLOR_BLACK);
+	init_pair(5,COLOR_RED,COLOR_RED);
+	init_pair(7,COLOR_BLUE,COLOR_BLUE);
 	
-	//Will loop until game ends
+	//Splash Screen
+	splash();
+	timeout(TIMEOUT);
+	clear();
+	
+	//Register Player
+//	mvprintw(SIZE_Y / 2 - 4, SIZE_X / 2 - 8, "Enter Name: ");
+	string name = "TEST";
+	draw_board();
+
+	//Initial Snake
+	for (int i = 0; i < 5; i++)
+    	snakes.add_front((SIZE_X/2) + i, (SIZE_Y/2));
+	
 	while (!game_over) {
-		//Printing stuff
-		mvprintw(SIZE_X+1,0,"Use arrow keys to move the cursor around");
+		//draw_board();
+		mvprintw(SIZE_Y + 1, 0, "Points: %i", points);
 		
 		//Movement cases
 		int ch = getch(); // Wait for user input, with TIMEOUT delay
-		switch(ch) {
-			case UP:
-				direction = 1;	
-				break;
-			case RIGHT:
-				direction = 2;
-				break;
-			case DOWN:
-				direction = 3;
-				break;
-			case LEFT:
-				direction = 4;
-				break;
-			case 'q': 
-				game_over = true;
-				break;
-		}
+		if (ch == KEY_UP && direction != 3) 
+			direction = 1;
+		else if (ch == KEY_RIGHT && direction != 4) 
+			direction = 2;
+		else if (ch == KEY_DOWN && direction != 1) 
+			direction = 3;
+		else if (ch == KEY_LEFT && direction != 2) 
+			direction = 4;
+		else if (ch == 'q' || ch == 'Q')
+			game_over = true;
 
-        Snake* path = snakes.get_front();
+		//Determine path
+    	Snake* path = snakes.get_front();
 		int path_x = path->get_x();
 		int path_y = path->get_y();
-		
+	
 		//Movement
-		if (direction == 1) path_x--;
-		else if (direction == 2) path_y++;
-		else if (direction == 3) path_x++;
-		else if (direction == 4) path_y--;
+		if 		(direction == 1) path_y--;
+		else if (direction == 2) path_x++;
+		else if (direction == 3) path_y++;
+		else if (direction == 4) path_x--;
 		
 		snakes.add_front(path_x, path_y);
-		
+
 		//Check for apple
-		if (path_x == apple_y && path_y == apple_x) {
+		if (path_x == apple_x && path_y == apple_y) {	
 			//Respawn apple
-			apple_x = rand() % SIZE_X + 1;
-			apple_y = rand() % SIZE_Y + 1;
+			apple_x = rand() % (SIZE_X - 1) + 1;
+			apple_y = rand() % (SIZE_Y - 1) + 1;
+			
 			//Add points
+			points++;
 		}
-		else {
-			snakes.pop_back();
-		}
+		else snakes.pop_back();
 
-		erase();
-		mvaddch(apple_y, apple_x, 'o');
-
-		//Tracking snake position
-		Snake* curr = snakes.get_front();
-		while (curr) {
-			mvaddch(curr->get_x(), curr->get_y(), 'O');
-			curr = curr->get_next();
-			//Collision check
-		}
+		//Collision
+		if (path_y == SIZE_Y || path_x == SIZE_X || path_y == 0 || path_x == 0)
+	      game_over = true;
+		
+		erase();	
+		draw_board();
+		draw_apple(apple_y, apple_x);
+		draw_snake(path_x, path_y);
+		print_highscores();
 		refresh();
 	}
-//	clear();
-//	print_board();
-	timeout(-1);
-	erase();
-	refresh();
-	//wait_ticks(300000);
-	endwin(); // End curses mode
-	system("clear");
 
+	timeout(-1);
+	print_game_over(points);
+	save_score(name, points);
+	getch();
+	refresh();
+	endwin(); // End curses mode
 	return 0;
 }
