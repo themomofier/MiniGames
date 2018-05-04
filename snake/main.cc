@@ -1,16 +1,19 @@
 #include <iostream>
+#include <algorithm>
 #include <ctime>
 #include <ncurses.h>
 #include <chrono>
 #include <set>
 #include <sstream>
+#include <fstream>
+#include <vector>
 #include "Snake.h"
 #include "Title.h"
 using namespace std;
 
 const int SIZE_X = 40;
 const int SIZE_Y = 30;  
-const unsigned int TIMEOUT = 120; 
+const int TIMEOUT = 130; 
 const char BORDER = ' ';
 const char SNAKE = ' ';
 const char APPLE = ' ';
@@ -22,12 +25,12 @@ Body snakes;
 void draw_board() {
 	attron(COLOR_PAIR(7));
 	for (int i = 0; i <= SIZE_X; i++) {
-		mvaddch(0, i, BORDER | A_REVERSE);
-		mvaddch(SIZE_Y, i, BORDER | A_REVERSE);
+		mvaddch(0, i, BORDER);
+		mvaddch(SIZE_Y, i, BORDER);
 	}
 	for (int i = 0; i <= SIZE_Y; i++) {
-		mvaddch(i, 0, BORDER | A_REVERSE);
-		mvaddch(i, SIZE_X, BORDER | A_REVERSE);
+		mvaddch(i, 0, BORDER);
+		mvaddch(i, SIZE_X, BORDER);
 	}
 	attroff(COLOR_PAIR(7));
 }
@@ -37,7 +40,7 @@ void draw_snake(int x, int y) {
 	while (curr) {
 		attron(COLOR_PAIR(3));
 		
-		mvaddch(curr->get_y(), curr->get_x(), SNAKE | A_REVERSE);
+		mvaddch(curr->get_y(), curr->get_x(), SNAKE);
 		if (curr->get_x() == x && curr->get_y() == y && curr != snakes.get_front()) game_over = true;
 		curr = curr->get_next();
 		attroff(COLOR_PAIR(3));
@@ -46,7 +49,7 @@ void draw_snake(int x, int y) {
 
 void draw_apple(int y, int x) {
 	attron(COLOR_PAIR(5));
-	mvaddch(y, x, APPLE | A_REVERSE);
+	mvaddch(y, x, APPLE);
 	attroff(COLOR_PAIR(5));
 }
 
@@ -58,10 +61,10 @@ void print_game_over(int points){
 	ss << points;
 	attron(COLOR_PAIR(7));
 	for(int x = 0; x < 19; x++){
-		mvaddch(min_y, min_x + x, BORDER | A_REVERSE);
-		mvaddch(min_y + 4, min_x + x, BORDER | A_REVERSE);
-		mvaddch(min_y + 7, min_x + x, BORDER | A_REVERSE);
-		mvaddch(min_y + 10, min_x + x, BORDER | A_REVERSE);
+		mvaddch(min_y, min_x + x, BORDER);
+		mvaddch(min_y + 4, min_x + x, BORDER);
+		mvaddch(min_y + 7, min_x + x, BORDER);
+		mvaddch(min_y + 10, min_x + x, BORDER);
 	}
 	
 	for(int y = 0; y < 11; y++){
@@ -77,15 +80,49 @@ void print_game_over(int points){
 	mvprintw(min_y + 5, min_x + 1, 	" Your score was: ");
 	mvprintw(min_y + 6, min_x + 1, 	"                 ");
 	mvprintw(min_y + 6, min_x + 6, ss.str().c_str());
-	mvprintw(min_y + 8, min_x + 1, 	"  press any key  ");
-	mvprintw(min_y + 9, min_x + 1, 	"    to restart   ");
+	mvprintw(min_y + 8, min_x + 1, 	"  Press any key  ");
+	mvprintw(min_y + 9, min_x + 1, 	"    to quit.   ");
 	attroff(COLOR_PAIR(1));																			
 }
 
+//bool compare_score(const Player &a, const Player &b) {
+//	return a.get_score() < b.get_score();
+//}
+
+void save_score(string name, int points) {
+	ofstream highscores ("Highscores", ios::app);
+	if (highscores.is_open()) {
+		if (points < 10 ) {
+			highscores << name << "          00" << points << endl;
+		}
+		else if (points < 100) {
+			highscores << name << "          0" << points << endl;
+		}
+		else 
+			highscores << name << "          " << points << endl;
+		highscores.close();
+	}
+}
+
+void print_highscores() {
+	string line;
+	int min_x = SIZE_X + 3;
+	int min_y = 3;
+	mvprintw(1, min_x, 		"    HIGSCORES");
+	mvprintw(2, min_x, 		"=================");
+	ifstream highscores ("Highscores");
+	if (highscores.is_open()) {
+		while (getline(highscores, line)) {
+			mvprintw(min_y, min_x, line.c_str());
+			min_y++;
+		}
+	}
+}
+
 int main() {
-	//bool quit = false;
 	int direction = 2;
 	int points = 0;
+	float speed = 1;
 
 	srand(time(NULL));
 	initscr();
@@ -97,21 +134,23 @@ int main() {
 	start_color();
 
 	init_pair(1,COLOR_WHITE,COLOR_BLACK);
-	init_pair(2,COLOR_CYAN,COLOR_BLACK);
-	init_pair(3,COLOR_GREEN,COLOR_BLACK);
+	init_pair(3,COLOR_GREEN,COLOR_GREEN);
 	init_pair(4,COLOR_YELLOW,COLOR_BLACK);
-	init_pair(5,COLOR_RED,COLOR_BLACK);
-	init_pair(6,COLOR_MAGENTA,COLOR_BLACK);
-	init_pair(7,COLOR_BLUE,COLOR_BLACK);
+	init_pair(5,COLOR_RED,COLOR_RED);
+	init_pair(7,COLOR_BLUE,COLOR_BLUE);
 	
 	//Splash Screen
 	splash();
 	timeout(TIMEOUT);
 	clear();
+	
+	//Register Player
+//	mvprintw(SIZE_Y / 2 - 4, SIZE_X / 2 - 8, "Enter Name: ");
+	string name = "TEST";
+	draw_board();
 
 	//Initial Snake
-	draw_board();
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 5; i++)
     	snakes.add_front((SIZE_X/2) + i, (SIZE_Y/2));
 	
 	while (!game_over) {
@@ -137,7 +176,7 @@ int main() {
 		int path_y = path->get_y();
 	
 		//Movement
-		if (direction == 1) path_y--;
+		if 		(direction == 1) path_y--;
 		else if (direction == 2) path_x++;
 		else if (direction == 3) path_y++;
 		else if (direction == 4) path_x--;
@@ -163,11 +202,13 @@ int main() {
 		draw_board();
 		draw_apple(apple_y, apple_x);
 		draw_snake(path_x, path_y);
+		print_highscores();
 		refresh();
 	}
 
 	timeout(-1);
 	print_game_over(points);
+	save_score(name, points);
 	getch();
 	refresh();
 	endwin(); // End curses mode
