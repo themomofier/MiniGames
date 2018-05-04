@@ -37,7 +37,7 @@ public class Main{
 		for(i = 0; i < 10; i++){
 			top = bot = false;
 			if(i > 0) top = true;
-			if(j < 9) bot = true;
+			if(i < 9) bot = true;
 
 			for(j = 0; j < 10; j++){
 				right = left = false;
@@ -54,8 +54,8 @@ public class Main{
 					if(left && isBomb[i][j-1])  board[i][j].increment();
 					if(bot){
 						if(isBomb[i+1][j])            board[i][j].increment();
-						if(right && isBomb[i+1][j+1]  board[i][j].increment();
-						if(left && isBomb[i+1][j-1]   board[i][j].increment();
+						if(right && isBomb[i+1][j+1]) board[i][j].increment();
+						if(left && isBomb[i+1][j-1])  board[i][j].increment();
 					}
 				}
 			}
