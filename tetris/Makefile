@@ -1,8 +1,10 @@
 CXX = g++
 CXXFLAGS = -O3 -Wall -g -std=c++17 
 
-a.out: main.o Block.o Game.o
-	$(CXX) $(CXXFLAGS) main.o Block.o Game.o -lncurses
+#a.out: main.o Block.o Game.o
+#	$(CXX) $(CXXFLAGS) -c main.o Block.o Game.o -lncurses
+
+all: main.o Block.o Game.o
 
 main.o: main.cc Block.h Game.h
 	$(CXX) $(CXXFLAGS) -c main.cc 

@@ -7,7 +7,8 @@
 using namespace std;
 
 const double DELAY = 0.5; //seconds
-
+const int GRID_POS_X = 0;
+const int GRID_POS_Y = 0;
 const int SQUARE_WIDTH = 4;
 const int SQUARE_HEIGHT = 2;
 const char SQUARE[SQUARE_HEIGHT][SQUARE_WIDTH] = 
@@ -68,53 +69,56 @@ void print_game_over(int score){
 	
 }
 
-void print_square(int y_coord, int x_coord, Square sqr, bool del = false){
+void print_square(int y_coord, int x_coord, Square sqr, WINDOW* game_win, bool del = false){
 	if(sqr.present){
-		attron(COLOR_PAIR(sqr.color + 1));
+		wattron(game_win, COLOR_PAIR(sqr.color + 1));
 		for(int y = 0; y < SQUARE_HEIGHT; y++){
 			for(int x = 0; x < SQUARE_WIDTH; x++){
-				mvaddch(y_coord * SQUARE_HEIGHT + y + 1, 
-						x_coord * SQUARE_WIDTH + x + 1, 
-						SQUARE[y][x]);
+				mvwaddch(game_win,
+						 y_coord * SQUARE_HEIGHT + y + 1, 
+						 x_coord * SQUARE_WIDTH + x + 1, 
+						 SQUARE[y][x]);
 			}
 		}
-		attroff(COLOR_PAIR(sqr.color + 1));
+		wattroff(game_win, COLOR_PAIR(sqr.color + 1));
 	}else if(del){
-		attron(COLOR_PAIR(8));
+		wattron(game_win, COLOR_PAIR(CONTENT_COLOR));
 		for(int y = 0; y < SQUARE_HEIGHT; y++){
 			for(int x = 0; x < SQUARE_WIDTH; x++){
-				mvaddch(y_coord * SQUARE_HEIGHT + y + 1, 
-						x_coord * SQUARE_WIDTH + x + 1, 
-						EMPTY_SQUARE[y][x]);
+				mvwaddch(game_win,
+						 y_coord * SQUARE_HEIGHT + y + 1, 
+						 x_coord * SQUARE_WIDTH + x + 1, 
+						 EMPTY_SQUARE[y][x]);
 			}
 		}
-		attroff(COLOR_PAIR(8));
+		wattroff(game_win, COLOR_PAIR(CONTENT_COLOR));
 	}	
 }
 
-void print_block(Block block){
+void print_block(Block block, WINDOW* game_win){
 	for(int y = 0; y < 4; y++){
 		for(int x = 0; x < 4; x++){
 			print_square(block.get_y() + y, block.get_x() + x, 
-						 {block.get_shape()[y][x], block.get_type()});
+						 {block.get_shape()[y][x], block.get_type()},
+						 game_win);
 		}
 	}
 }
 
-void print_game(Game game){
+void print_game(Game game, WINDOW* game_win){
 
 	for(int y = 0; y < GRID_HEIGHT; y++){
 		for(int x = 0; x < GRID_WIDTH; x++){
-			print_square(y, x, game.get_grid()[y][x], true);
+			print_square(y, x, game.get_grid()[y][x], game_win, true);
 		}
 	}
 	
-	print_block(game.get_block());
+	print_block(game.get_block(), game_win);
 
-	refresh();
+	wrefresh(game_win);
 }
 
-int main(){
+void tetris(){
 	
 	bool quit = false;
 	initscr();
@@ -132,9 +136,19 @@ int main(){
 	init_pair(5, COLOR_MAGENTA, COLOR_MAGENTA);
 	init_pair(6, COLOR_CYAN, COLOR_CYAN);
 	init_pair(7, COLOR_WHITE, COLOR_WHITE);
-	
+	clear();
 	init_pair(CONTENT_COLOR, COLOR_WHITE, COLOR_BLACK);
 	init_pair(BORDER_COLOR, COLOR_BLUE, COLOR_BLUE);
+
+	refresh();
+	WINDOW *game_win = newwin(GRID_HEIGHT * SQUARE_HEIGHT + 2,
+							  GRID_WIDTH * SQUARE_WIDTH + 2,
+							  GRID_POS_Y, 
+							  GRID_POS_X);
+	wattron(game_win, COLOR_PAIR(BORDER_COLOR));
+	wborder(game_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+	wattroff(game_win, COLOR_PAIR(BORDER_COLOR));
+	wrefresh(game_win);
 
 	chrono::system_clock::time_point start, end;
 	//clock_t start, end;
@@ -145,8 +159,7 @@ int main(){
 	while(!quit){
 	
 		Game game;
-		print_border(); 
-		print_game(game);
+		//print_game(game, game_win);
 		timeout(0);
 		double multiplier = 1;
 		start = chrono::system_clock::now();
@@ -174,7 +187,6 @@ int main(){
 						break;
 					case ' ':
 						game.drop_block();
-						cout << "" << endl;
 						break;
 				}
 			}
@@ -190,11 +202,12 @@ int main(){
 				//multiplier += 0.006;
 			}
 
-			print_game(game);
+			print_game(game, game_win);
 		}
 		
 		quit = false;
 		print_game_over(game.get_score());
+		//WINDOW* pop_up = newwin(
 		timeout(-1);
 		c = getch();
 		if(c == 'q' || c == 'Q'){
@@ -203,5 +216,4 @@ int main(){
 		
 	}
 	endwin();
-	return 0;
 }

@@ -1,4 +1,5 @@
 #include "Game.h"
+#include <iostream>
 
 Game::Game() : block(GRID_WIDTH / 2 - 2) {
 	for(std::array<Square, GRID_WIDTH> &line : grid){
@@ -105,6 +106,7 @@ void Game::place_block(){
 				grid[0][X].present = false;
 			}
 			holes[0] = GRID_WIDTH;
+			std::cout << "" << std::endl;
 		}
 	}
 	score += numclears * numclears * GRID_WIDTH;

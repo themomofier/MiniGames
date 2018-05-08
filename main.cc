@@ -1,11 +1,12 @@
 #include <iostream>
-
 using namespace std;
+
+void tetris();
 
 int main(){
 	string user_input = "";
 	char indicator = 0;
-	loop = true;
+	bool loop = true;
 
 	cout << "What would you like to play?\nMinesweeper\nSnake\nTetris\nBlock breakers\n>";
 	getline(cin, user_input);
@@ -25,6 +26,7 @@ int main(){
 				break;
 			case 'T':
 				//start Tetris
+				tetris();
 				break;
 			case 'Q':
 				loop = false;
