@@ -1,7 +1,9 @@
 #include <iostream>
 using namespace std;
 
-void tetris();
+void Pong();
+void Snake()
+void Tetris();
 
 int main(){
 	string user_input = "";
@@ -15,18 +17,19 @@ int main(){
 	
 	while(loop){	
 		switch(indicator){
-			case 'B':
-				//start Block Breakers
-				break;
 			case 'M':
 				//start Minesweeper
 				break;
+			case 'P':
+				Pong();
+				break;
 			case 'S':
 				//start Snake
+				Snake();
 				break;
 			case 'T':
 				//start Tetris
-				tetris();
+				Tetris();
 				break;
 			case 'Q':
 				loop = false;

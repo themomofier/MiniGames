@@ -66,7 +66,7 @@ struct block {
 	}
 };
 
-int main() {
+void Pong() {
 	int row, col;
 	motion position1(width / 2, height - 2);
 	//block paddle(position1);
@@ -98,7 +98,6 @@ int main() {
 		timeout(100);
 	}
 	endwin();
-	return 0;
 }
 
 WINDOW *create_newwin(int height, int width, int starty, int startx) {
