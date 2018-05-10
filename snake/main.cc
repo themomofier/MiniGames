@@ -39,7 +39,6 @@ void draw_snake(int x, int y) {
 	Snake* curr = snakes.get_front();
 	while (curr) {
 		attron(COLOR_PAIR(3));
-		
 		mvaddch(curr->get_y(), curr->get_x(), SNAKE);
 		if (curr->get_x() == x && curr->get_y() == y && curr != snakes.get_front()) game_over = true;
 		curr = curr->get_next();
@@ -47,8 +46,19 @@ void draw_snake(int x, int y) {
 	}
 }
 
-void draw_apple(int y, int x) {
+void draw_apple(int &y, int &x) {
 	attron(COLOR_PAIR(5));
+	
+	//Prevent spawn under snake
+	Snake* curr = snakes.get_front();
+	while (curr) {
+		 if (curr->get_x() == x && curr->get_y() == y && curr != snakes.get_front()) { 
+			 x = rand() % SIZE_X + 1;
+			 y = rand() % SIZE_Y + 1;
+		 }
+		 curr = curr->get_next();
+	}
+
 	mvaddch(y, x, APPLE);
 	attroff(COLOR_PAIR(5));
 }
@@ -84,10 +94,6 @@ void print_game_over(int points){
 	mvprintw(min_y + 9, min_x + 1, 	"    to quit.   ");
 	attroff(COLOR_PAIR(1));																			
 }
-
-//bool compare_score(const Player &a, const Player &b) {
-//	return a.get_score() < b.get_score();
-//}
 
 void save_score(string name, int points) {
 	ofstream highscores ("Highscores", ios::app);
@@ -156,7 +162,7 @@ int main() {
 	while (!game_over) {
 		//draw_board();
 		mvprintw(SIZE_Y + 1, 0, "Points: %i", points);
-		
+	
 		//Movement cases
 		int ch = getch(); // Wait for user input, with TIMEOUT delay
 		if (ch == KEY_UP && direction != 3) 
@@ -196,7 +202,7 @@ int main() {
 
 		//Collision
 		if (path_y == SIZE_Y || path_x == SIZE_X || path_y == 0 || path_x == 0)
-	      game_over = true;
+			game_over = true;
 		
 		erase();	
 		draw_board();
