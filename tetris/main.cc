@@ -43,10 +43,9 @@ void print_game_over(int score, WINDOW* pop_up){
 	
 	wattron(pop_up, COLOR_PAIR(BORDER_COLOR));
 	wborder(pop_up, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+	mvwprintw(pop_up, 4,  1, "                 ");
+	mvwprintw(pop_up, 7,  1, "                 ");
 	wattroff(pop_up, COLOR_PAIR(BORDER_COLOR));
-
-	
-
 
 	wattron(pop_up, COLOR_PAIR(CONTENT_COLOR));
 	mvwprintw(pop_up, 1,  1, "                 ");
@@ -58,6 +57,7 @@ void print_game_over(int score, WINDOW* pop_up){
 	mvwprintw(pop_up, 8, 1, "  press any key  ");
 	mvwprintw(pop_up, 9, 1, "    to restart   ");
 	wattroff(pop_up, COLOR_PAIR(CONTENT_COLOR));
+	wrefresh(pop_up);
 	
 }
 
@@ -198,9 +198,9 @@ void Tetris(){
 		}
 		
 		quit = false;
-		WINDOW* pop_up = newwin( 19, 9,
-								(SQUARE_HEIGHT * GRID_HEIGHT + 2 - 9) / 2,
-								(SQUARE_WIDTH * GRID_WIDTH + 2 - 19) / 2);
+		WINDOW* pop_up = newwin( 11, 19,
+								(SQUARE_HEIGHT * GRID_HEIGHT + 2 - 9) / 2 + GRID_POS_Y,
+								(SQUARE_WIDTH * GRID_WIDTH + 2 - 19) / 2 + GRID_POS_X);
 		print_game_over(game.get_score(), pop_up);
 		timeout(-1);
 		c = getch();
