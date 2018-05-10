@@ -7,8 +7,8 @@
 using namespace std;
 
 const double DELAY = 0.5; //seconds
-const int GRID_POS_X = 0;
-const int GRID_POS_Y = 0;
+const int GRID_POS_X = 1;
+const int GRID_POS_Y = 1;
 const int SQUARE_WIDTH = 4;
 const int SQUARE_HEIGHT = 2;
 const char SQUARE[SQUARE_HEIGHT][SQUARE_WIDTH] = 
@@ -110,6 +110,59 @@ void print_game(Game game, WINDOW* game_win){
 	wrefresh(game_win);
 }
 
+void print_side_win(Game game, WINDOW* side_win){
+	Block next_block = game.get_next_block();
+	for(int y_coord = 0; y_coord < 2; y_coord++){ //block only 2 tall max at orientation 0
+		for(int x_coord = 0; x_coord < 4; x_coord++){
+			if(next_block.get_shape()[y_coord][x_coord]){
+				wattron(side_win, COLOR_PAIR(next_block.get_type() + 1));
+				for(int y = 0; y < SQUARE_HEIGHT; y++){
+					for(int x = 0; x < SQUARE_WIDTH; x++){
+						mvwaddch(side_win,
+								 y_coord * SQUARE_HEIGHT + y + 2, 
+								 x_coord * SQUARE_WIDTH + x + 2, 
+								 SQUARE[y][x]);
+					}
+				}
+				wattroff(side_win, COLOR_PAIR(next_block.get_type() + 1));
+			}else{
+				wattron(side_win, COLOR_PAIR(CONTENT_COLOR));
+				for(int y = 0; y < SQUARE_HEIGHT; y++){
+					for(int x = 0; x < SQUARE_WIDTH; x++){
+						mvwaddch(side_win,
+								 y_coord * SQUARE_HEIGHT + y + 2, 
+								 x_coord * SQUARE_WIDTH + x + 2, 
+								 ' ');
+					}
+				}
+				wattroff(side_win, COLOR_PAIR(CONTENT_COLOR));
+			}
+		}
+	}
+
+	for(int x = 1; x < 4 * SQUARE_WIDTH + 3; x++){
+		wattron(side_win, COLOR_PAIR(BORDER_COLOR));
+		mvwaddch(side_win, 2 * SQUARE_HEIGHT + 3, x, BORDER);
+		wattroff(side_win, COLOR_PAIR(BORDER_COLOR));
+	}
+	wattron(side_win, COLOR_PAIR(CONTENT_COLOR));
+	mvwprintw(side_win, 2 * SQUARE_HEIGHT + 4, 2, "Score: %d", game.get_score());
+	wattroff(side_win, COLOR_PAIR(CONTENT_COLOR));
+	
+	wrefresh(side_win);
+}
+
+void print_directions(){
+	int start_y = SQUARE_HEIGHT * GRID_HEIGHT + 2 + GRID_POS_Y;
+	mvprintw(start_y, GRID_POS_X, "TETRIS"); 
+	mvprintw(start_y + 1, GRID_POS_X, "Rotate block: up arrow"); 
+	mvprintw(start_y + 2, GRID_POS_X, "Move block left: left arrow"); 
+	mvprintw(start_y + 3, GRID_POS_X, "Move block right: right arrow"); 
+	mvprintw(start_y + 4, GRID_POS_X, "Move block down: down arrow"); 
+	mvprintw(start_y + 5, GRID_POS_X, "Drop block: space bar"); 
+	mvprintw(start_y + 6, GRID_POS_X, "Quit: q"); 
+}
+
 void Tetris(){
 	
 	bool quit = false;
@@ -141,6 +194,16 @@ void Tetris(){
 	wborder(game_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
 	wattroff(game_win, COLOR_PAIR(BORDER_COLOR));
 	wrefresh(game_win);
+	WINDOW *side_win = newwin(2 * SQUARE_HEIGHT + 6,
+							  4 * SQUARE_WIDTH + 4,
+							  GRID_POS_Y, 
+							  GRID_POS_X + GRID_WIDTH * SQUARE_WIDTH + 2 + 1);
+	wattron(side_win, COLOR_PAIR(BORDER_COLOR));
+	wborder(side_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+	wattroff(side_win, COLOR_PAIR(BORDER_COLOR));
+	wrefresh(side_win);
+
+	print_directions();
 
 	chrono::system_clock::time_point start, end;
 	//clock_t start, end;
@@ -193,7 +256,7 @@ void Tetris(){
 				game.move_block_down();
 				//multiplier += 0.006;
 			}
-
+			print_side_win(game, side_win);
 			print_game(game, game_win);
 		}
 		

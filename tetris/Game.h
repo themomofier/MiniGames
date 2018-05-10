@@ -12,16 +12,18 @@ class Game{
 	std::array<std::array<Square, GRID_WIDTH>, GRID_HEIGHT> grid; // board[y][x] 0 top left
 	std::array<int, GRID_HEIGHT> holes; //holes[y]
 	Block block;
+	Block next_block;
 	bool game_over = false;
 	int score = 0;
 
 	public:
 	Game();
 	Block get_block();
+	Block get_next_block();	
 	std::array<std::array<Square, GRID_WIDTH>, GRID_HEIGHT> get_grid();
 	int get_score();
 	bool is_game_over();
-	void next_block();
+	void cycle_block();
 	bool collision();
 	void move_block_right();
 	void move_block_left();

@@ -1,7 +1,7 @@
 #include "Game.h"
 #include <iostream>
 
-Game::Game() : block(GRID_WIDTH / 2 - 2) {
+Game::Game() : block(GRID_WIDTH / 2 - 2), next_block(GRID_WIDTH / 2 - 2) {
 	for(std::array<Square, GRID_WIDTH> &line : grid){
 		for(Square &sqr : line){
 			sqr.present = false;
@@ -16,15 +16,18 @@ Game::Game() : block(GRID_WIDTH / 2 - 2) {
 
 Block Game::get_block(){return block;}
 
+Block Game::get_next_block(){return next_block;}
+
 std::array<std::array<Square, GRID_WIDTH>, GRID_HEIGHT> Game::get_grid(){return grid;}
 
 int Game::get_score(){return score;}
 
 bool Game::is_game_over(){return game_over;}
 
-void Game::next_block(){
+void Game::cycle_block(){
 	Block b(GRID_WIDTH / 2 - 2);
-	block = b;
+	block = next_block;
+	next_block = b;
 	if(collision()){
 		game_over = true;
 	}
@@ -110,5 +113,5 @@ void Game::place_block(){
 		}
 	}
 	score += numclears * numclears * GRID_WIDTH;
-	next_block();
+	cycle_block();
 }
