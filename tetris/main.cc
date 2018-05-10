@@ -36,36 +36,28 @@ void print_border(){
 	attroff(COLOR_PAIR(BORDER_COLOR));
 }
 
-void print_game_over(int score){
+void print_game_over(int score, WINDOW* pop_up){
 
-	int min_x = GRID_WIDTH * SQUARE_WIDTH / 2 - 9;
-	int min_y = GRID_HEIGHT * SQUARE_HEIGHT / 2 - 6;
 	stringstream ss;
 	ss << score;
 	
-	attron(COLOR_PAIR(BORDER_COLOR));
-	for(int x = 0; x < 19; x++){
-		mvaddch(min_y, min_x + x, BORDER);
-		mvaddch(min_y + 4, min_x + x, BORDER);
-		mvaddch(min_y + 7, min_x + x, BORDER);
-		mvaddch(min_y + 10, min_x + x, BORDER);
-	}
-	for(int y = 0; y < 11; y++){
-		mvaddch(min_y + y, min_x, BORDER);
-		mvaddch(min_y + y, min_x + 18, BORDER);
-	}
-	attroff(COLOR_PAIR(BORDER_COLOR));
+	wattron(pop_up, COLOR_PAIR(BORDER_COLOR));
+	wborder(pop_up, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+	wattroff(pop_up, COLOR_PAIR(BORDER_COLOR));
+
 	
-	attron(COLOR_PAIR(CONTENT_COLOR));
-	mvprintw(min_y + 1,  min_x + 1, "                 ");
-	mvprintw(min_y + 2,  min_x + 1, "    GAME OVER!   ");
-	mvprintw(min_y + 3,  min_x + 1, "                 ");
-	mvprintw(min_y + 5, min_x + 1, " your score was: ");
-	mvprintw(min_y + 6, min_x + 1, "                 ");
-	mvprintw(min_y + 6, min_x + 6, ss.str().c_str());
-	mvprintw(min_y + 8, min_x + 1, "  press any key  ");
-	mvprintw(min_y + 9, min_x + 1, "    to restart   ");
-	attroff(COLOR_PAIR(CONTENT_COLOR));
+
+
+	wattron(pop_up, COLOR_PAIR(CONTENT_COLOR));
+	mvwprintw(pop_up, 1,  1, "                 ");
+	mvwprintw(pop_up, 2,  1, "    GAME OVER!   ");
+	mvwprintw(pop_up, 3,  1, "                 ");
+	mvwprintw(pop_up, 5, 1, " your score was: ");
+	mvwprintw(pop_up, 6, 1, "                 ");
+	mvwprintw(pop_up, 6, 6, ss.str().c_str());
+	mvwprintw(pop_up, 8, 1, "  press any key  ");
+	mvwprintw(pop_up, 9, 1, "    to restart   ");
+	wattroff(pop_up, COLOR_PAIR(CONTENT_COLOR));
 	
 }
 
@@ -118,7 +110,7 @@ void print_game(Game game, WINDOW* game_win){
 	wrefresh(game_win);
 }
 
-void tetris(){
+void Tetris(){
 	
 	bool quit = false;
 	initscr();
@@ -206,14 +198,16 @@ void tetris(){
 		}
 		
 		quit = false;
-		print_game_over(game.get_score());
-		//WINDOW* pop_up = newwin(
+		WINDOW* pop_up = newwin( 19, 9,
+								(SQUARE_HEIGHT * GRID_HEIGHT + 2 - 9) / 2,
+								(SQUARE_WIDTH * GRID_WIDTH + 2 - 19) / 2);
+		print_game_over(game.get_score(), pop_up);
 		timeout(-1);
 		c = getch();
 		if(c == 'q' || c == 'Q'){
 			quit = true;
 		}		
-		
+		delwin(pop_up);
 	}
 	endwin();
 }

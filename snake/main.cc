@@ -125,7 +125,7 @@ void print_highscores() {
 	}
 }
 
-int main() {
+ void snake() {
 	int direction = 2;
 	int points = 0;
 	float speed = 1;
@@ -218,5 +218,4 @@ int main() {
 	getch();
 	refresh();
 	endwin(); // End curses mode
-	return 0;
 }

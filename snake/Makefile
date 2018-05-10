@@ -1,9 +1,6 @@
-main.o: main.cc Title.o Snake.o
-	g++ -g -std=c++17 -c main.cc -lncurses 
-Title.o:
-	g++ -g -std=c++17 -c Title.cc -lncurses
-Snake.o:
-	g++ -g -std=c++17 -c Snake.cc -lncurses
+main.o: main.cc Title.h Snake.h
+	g++ -g -std=c++17 -c main.cc 
+
 clean:
 	        rm -f a.out core *.o
 			

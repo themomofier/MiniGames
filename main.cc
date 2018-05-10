@@ -2,7 +2,7 @@
 using namespace std;
 
 void Pong();
-void Snake()
+void snake();
 void Tetris();
 
 int main(){
@@ -10,22 +10,21 @@ int main(){
 	char indicator = 0;
 	bool loop = true;
 
-	cout << "What would you like to play?\nMinesweeper\nSnake\nTetris\nBlock breakers\n>";
-	getline(cin, user_input);
-
-	indicator = toupper(user_input.at(0));
-	
 	while(loop){	
+		cout << "What would you like to play?\nMinesweeper\nSnake\nTetris\nBlock breakers\n>";
+		getline(cin, user_input);
+		indicator = toupper(user_input.at(0));
 		switch(indicator){
 			case 'M':
 				//start Minesweeper
+				system("java -classpath mineSweeper Main");
 				break;
 			case 'P':
 				Pong();
 				break;
 			case 'S':
 				//start Snake
-				Snake();
+				snake();
 				break;
 			case 'T':
 				//start Tetris
