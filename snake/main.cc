@@ -17,10 +17,10 @@ const int TIMEOUT = 130;
 const char BORDER = ' ';
 const char SNAKE = ' ';
 const char APPLE = ' ';
-int apple_x = rand() % SIZE_X + 1;
-int apple_y = rand() % SIZE_Y + 1;
+//int apple_x = rand() % SIZE_X + 1;
+//int apple_y = rand() % SIZE_Y + 1;
 bool game_over = false;
-Body snakes;
+//Body snakes;
 
 void draw_board() {
 	attron(COLOR_PAIR(7));
@@ -35,18 +35,21 @@ void draw_board() {
 	attroff(COLOR_PAIR(7));
 }
 
-void draw_snake(int x, int y) {
+void draw_snake(Body snakes, int y, int x) {
 	Snake* curr = snakes.get_front();
 	while (curr) {
 		attron(COLOR_PAIR(3));
 		mvaddch(curr->get_y(), curr->get_x(), SNAKE);
+		
+		//Collision with body
 		if (curr->get_x() == x && curr->get_y() == y && curr != snakes.get_front()) game_over = true;
+		
 		curr = curr->get_next();
 		attroff(COLOR_PAIR(3));
 	}
 }
 
-void draw_apple(int &y, int &x) {
+void draw_apple(Body snakes, int &y, int &x) {
 	attron(COLOR_PAIR(5));
 	
 	//Prevent spawn under snake
@@ -125,7 +128,10 @@ void print_highscores() {
 	}
 }
 
- void snake() {
+int main() {
+	Body snakes;
+	int apple_x = rand() % SIZE_X + 1;
+	int apple_y = rand() % SIZE_Y + 1;
 	int direction = 2;
 	int points = 0;
 	float speed = 1;
@@ -157,10 +163,9 @@ void print_highscores() {
 
 	//Initial Snake
 	for (int i = 0; i < 5; i++)
-    	snakes.add_front((SIZE_X/2) + i, (SIZE_Y/2));
+    	snakes.add_front((SIZE_Y/2) + i, (SIZE_X/2));
 	
 	while (!game_over) {
-		//draw_board();
 		mvprintw(SIZE_Y + 1, 0, "Points: %i", points);
 	
 		//Movement cases
@@ -187,7 +192,7 @@ void print_highscores() {
 		else if (direction == 3) path_y++;
 		else if (direction == 4) path_x--;
 		
-		snakes.add_front(path_x, path_y);
+		snakes.add_front(path_y, path_x);
 
 		//Check for apple
 		if (path_x == apple_x && path_y == apple_y) {	
@@ -206,8 +211,8 @@ void print_highscores() {
 		
 		erase();	
 		draw_board();
-		draw_apple(apple_y, apple_x);
-		draw_snake(path_x, path_y);
+		draw_apple(snakes, apple_y, apple_x);
+		draw_snake(snakes, path_y, path_x);
 		print_highscores();
 		refresh();
 	}
@@ -218,4 +223,6 @@ void print_highscores() {
 	getch();
 	refresh();
 	endwin(); // End curses mode
+	return 0;
 }
+

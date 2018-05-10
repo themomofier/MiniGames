@@ -5,7 +5,7 @@ class Snake {
 	Snake* next = nullptr;
 
 	public:
-	Snake(int new_x, int new_y) : x(new_x), y(new_y) {}
+	Snake(int new_y, int new_x) : y(new_y), x(new_x) {}
 	int get_x() 					{ return x; 		}
 	int get_y() 					{ return y; 		}
 	Snake* get_next() 				{ return next; 		}
@@ -30,8 +30,8 @@ class Body {
 	Snake* get_front() { return head; }
 	Snake* get_back() { return tail; }
 
-	void add_front(int x, int y) {
-		Snake* new_snake = new Snake(x, y);
+	void add_front(int y, int x) {
+		Snake* new_snake = new Snake(y, x);
 		if (head == nullptr) {
 			head = new_snake;
 			tail = new_snake;
