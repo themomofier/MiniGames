@@ -35,6 +35,12 @@ public class Main{
 		}
 		
 		for(i = 0; i < 10; i++){
+			for(j = 0; j < 10; j++){
+				if(!isBomb[i][j]) board[i][j] = new Button();
+			}
+		
+		}
+		for(i = 0; i < 10; i++){
 			top = bot = false;
 			if(i > 0) top = true;
 			if(i < 9) bot = true;

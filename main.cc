@@ -11,7 +11,7 @@ int main(){
 	bool loop = true;
 
 	while(loop){	
-		cout << "What would you like to play?\nMinesweeper\nSnake\nTetris\nBlock breakers\n>";
+		cout << "What would you like to play?\nMinesweeper\nPong\nSnake\nTetris\n>";
 		getline(cin, user_input);
 		indicator = toupper(user_input.at(0));
 		switch(indicator){
