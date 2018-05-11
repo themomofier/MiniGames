@@ -6,7 +6,7 @@ CXXFLAGS = -O3 -Wall -g -std=c++17
 
 all: main.o Block.o Game.o
 
-main.o: main.cc Block.h Game.h
+main.o: main.cc Block.h Game.h ../tree.h
 	$(CXX) $(CXXFLAGS) -c main.cc 
 
 Block.o: Block.cc Block.h

@@ -4,6 +4,7 @@
 #include <ncurses.h>
 #include <sstream>
 #include <chrono>
+#include "../tree.h"
 using namespace std;
 
 const double DELAY = 0.5; //seconds
@@ -146,7 +147,7 @@ void print_side_win(Game game, WINDOW* side_win){
 		wattroff(side_win, COLOR_PAIR(BORDER_COLOR));
 	}
 	wattron(side_win, COLOR_PAIR(CONTENT_COLOR));
-	mvwprintw(side_win, 2 * SQUARE_HEIGHT + 4, 2, "Score: %d", game.get_score());
+	mvwprintw(side_win, 2 * SQUARE_HEIGHT + 4, 2, "Score: %d    ", game.get_score());
 	wattroff(side_win, COLOR_PAIR(CONTENT_COLOR));
 	
 	wrefresh(side_win);
@@ -162,6 +163,35 @@ void print_directions(){
 	mvprintw(start_y + 5, GRID_POS_X, "Drop block: space bar"); 
 	mvprintw(start_y + 6, GRID_POS_X, "Quit: q"); 
 }
+
+void print_highscores(BST<int> highscores){
+	int x = (GRID_WIDTH + 4) * SQUARE_WIDTH + GRID_POS_X + 8; 
+	int y = GRID_POS_Y;
+	stringstream ss;
+	ss.str(highscores.to_string());
+	mvprintw(y++, x, 		"    HIGSCORES");
+	mvprintw(y++, x, 		"=================");
+	int next_score;
+	while(ss >> next_score){
+		mvprintw(y++, x, "%u        ", next_score);
+	}	
+}
+/*
+print_highscores() {
+	string line;
+	int min_x = SIZE_X + 3;
+	int min_y = 3;
+	mvprintw(1, min_x, 		"    HIGSCORES");
+	mvprintw(2, min_x, 		"=================");
+	ifstream highscores ("Highscores");
+	if (highscores.is_open()) {
+		while (getline(highscores, line)) {
+			mvprintw(min_y, min_x, line.c_str());
+			min_y++;
+		}
+	}
+}
+*/
 
 void Tetris(){
 	
@@ -210,6 +240,9 @@ void Tetris(){
 	//time_t start, end
 	int diff;
 	int c;
+	BST<int> highscores("Tetris_Highscores");
+
+	print_highscores(highscores);	
 	
 	while(!quit){
 	
@@ -265,6 +298,8 @@ void Tetris(){
 								(SQUARE_HEIGHT * GRID_HEIGHT + 2 - 9) / 2 + GRID_POS_Y,
 								(SQUARE_WIDTH * GRID_WIDTH + 2 - 19) / 2 + GRID_POS_X);
 		print_game_over(game.get_score(), pop_up);
+		if(game.get_score() > 0) highscores.insert(game.get_score());
+		print_highscores(highscores);	
 		timeout(-1);
 		c = getch();
 		if(c == 'q' || c == 'Q'){
@@ -272,5 +307,6 @@ void Tetris(){
 		}		
 		delwin(pop_up);
 	}
+	highscores.save("Tetris_Highscores");
 	endwin();
 }
