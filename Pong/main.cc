@@ -2,7 +2,10 @@
 #include <iostream>
 #include <cmath>
 #include <ctime>
+#include <sstream>
 #include <unistd.h>
+#include "internet_server.h"
+#include "internet_client.h"
 using namespace std;
 
 WINDOW *create_newwin(int height, int width, int starty, int startx);
@@ -91,13 +94,31 @@ struct ball {
 
 	}
 };
-int main() {
+void Pong() {
+	//add user input for this
+	char mode;
+	cin >> mode;
+	string host = "localhost";
+	string port = "1025";
+	Internet_Server server;
+	Internet_Client client;
+	if(mode == 'c'){
+		server.start(1025);
+	}else if (mode == 'j'){
+		client.start(host.c_str(), port.c_str());
+	}
+	stringstream outgoing;
+	stringstream incoming;
+
 	srand(time(0));
 	int row, col;
 	WINDOW *my_win;
 	initscr();
 	curs_set(0);
-	getmaxyx(stdscr, row, col);
+	//edit
+	if(mode == 's') getmaxyx(stdscr, row, col);
+	else { row = 50; col = 200;}
+
 	cbreak();
 	width = (col-1) /2;
 	height = (row-1) /2;
@@ -124,10 +145,12 @@ int main() {
 		mvprintw(height + 2, width /2, "Player 1: %u", p1_score);
 		mvprintw(height + 3, width /2, "Player 2: %u", p2_score);
 		mvwaddch(my_win, my_ball.position.y, my_ball.position.x, ' ');
+
 		ch = getch();
 		if(ch == 'q') break;
 		my_pad.del_pad(my_win);
 		my_opp.del_pad(my_win);
+		//update my pad
 		if(ch == KEY_UP)   { 
 			if(my_pad.position.y == 1) { ; }
 			else { --my_pad.position.y; }
@@ -136,27 +159,63 @@ int main() {
 			if(my_pad.position.y == (height - 4)) { ; }
 			else { ++my_pad.position.y; }
 		}
-		if(my_ball.position.y >= (height - 4)) { ; }
-		else if(my_ball.position.y == 1) { ; }
-		else {
-			int direction = 0;
-			if (my_ball.position.y < my_opp.position.y)
-				direction = -1;
-			else if (my_ball.position.y > my_opp.position.y)
-				direction = 1;
-			if (rand() % 4 == 0) direction *= -1;
-			my_opp.position.y += direction;
+
+		outgoing.str("");
+		//write my pad
+		if(mode != 's'){
+			outgoing << my_pad.position.y << " ";
 		}
+		//write ball
+		if(mode == 'c'){
+			outgoing << width - 2 - my_ball.position.x << " " << my_ball.position.y << " ";
+		}
+		//write
+		if(mode == 'c'){
+			server.write(outgoing.str());
+		}else if(mode == 'j'){
+			client.write(outgoing.str());
+		}
+
+		//read
+		if(mode == 'c'){
+			incoming.str(server.read());
+		}else if(mode == 'j'){
+			incoming.str(client.read());
+		}
+
+		//update opponent pad
+		if(mode == 's'){	
+			if(my_ball.position.y >= (height - 4)) { ; }
+			else if(my_ball.position.y == 1) { ; }
+			else {
+				int direction = 0;
+				if (my_ball.position.y < my_opp.position.y)
+					direction = -1;
+				else if (my_ball.position.y > my_opp.position.y)
+					direction = 1;
+				if (rand() % 4 == 0) direction *= -1;
+				my_opp.position.y += direction;
+			}
+		}else{
+			incoming >> my_opp.position.y;
+		}	
+		
+		//update ball
+		if(mode == 'c' || mode == 's'){
+			my_ball.update(my_pad, my_opp);
+		}else{
+			incoming >> my_ball.position.x;
+			incoming >> my_ball.position.y;
+		}
+
+		//print
 		my_pad.print(my_win);	
 		my_opp.print(my_win);	
-		wrefresh(my_win);
-		my_ball.update(my_pad, my_opp);
 		mvwaddch(my_win, my_ball.position.y, my_ball.position.x, my_ball.ball_no);
 		refresh();
 		wrefresh(my_win);
 	}
 	endwin();
-	return 0;
 }
 
 WINDOW *create_newwin(int height, int width, int starty, int startx) {

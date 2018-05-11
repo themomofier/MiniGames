@@ -25,7 +25,9 @@ class Internet_Client {
 
 	public:
 	//Constructor that takes an ip address and port number for the server to connect to
-	Internet_Client(const char* ip, const char* port) : socket(io_service) {
+	Internet_Client() : socket(io_service) {}
+	
+	void start(const char* ip, const char* port){
 		boost::asio::ip::tcp::resolver resolver(io_service);
 		tcp::resolver::query query(ip, port);
 		tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);

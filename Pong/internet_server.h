@@ -24,14 +24,16 @@ class Internet_Server {
 	asio::io_service io_service;
 	tcp::socket socket;
 	public:
-	Internet_Server(int port) : socket(io_service){
+	Internet_Server() : socket(io_service){}
+
+	void start(int port){
+		cout << "Waiting for someone to connect..." << endl;
 		try {
 			tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), port));
 			acceptor.accept(socket);
 		} catch (std::exception& e) {
 			cerr << e.what() << endl;
 		}
-		cout << "Finished server constructor" << endl;
 	}
 
 	void write(string s){
