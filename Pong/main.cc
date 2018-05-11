@@ -96,16 +96,28 @@ struct ball {
 };
 void Pong() {
 	//add user input for this
+	cout << "For solo game type 's', to create a game type 'c', to join a game type 'j'\n";
 	char mode;
 	cin >> mode;
 	string host = "localhost";
-	string port = "1026";
+	string portstr;
+	int portnum;
+	if(mode != 's'){
+		cout << "Enter the port number\n";
+		if(mode == 'c') cin >> portnum;
+		else if(mode == 'j') cin >> portstr;
+	}
+	if(mode == 'j'){
+		cout << "Enter the hostname:\n";
+		cin >> host;
+	}
+
 	Internet_Server server;
 	Internet_Client client;
 	if(mode == 'c'){
-		server.start(1026);
+		server.start(portnum);
 	}else if (mode == 'j'){
-		client.start(host.c_str(), port.c_str());
+		client.start(host.c_str(), portstr.c_str());
 	}
 	stringstream outgoing;
 	stringstream incoming;
