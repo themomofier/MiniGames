@@ -9,9 +9,14 @@ int main(){
 	string user_input = "";
 	char indicator = 0;
 	bool loop = true;
+	bool was_pong = false;
+	string ignore;
 
 	while(loop){	
 		cout << "What would you like to play?\nMinesweeper\nPong\nSnake\nTetris\n>";
+		if(was_pong){
+			getline(cin, ignore);
+		}
 		getline(cin, user_input);
 		indicator = toupper(user_input.at(0));
 		switch(indicator){
@@ -21,6 +26,7 @@ int main(){
 				break;
 			case 'P':
 				Pong();
+				was_pong = true;
 				break;
 			case 'S':
 				//start Snake
