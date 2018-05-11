@@ -19,7 +19,7 @@ const char SNAKE = ' ';
 const char APPLE = ' ';
 //int apple_x = rand() % SIZE_X + 1;
 //int apple_y = rand() % SIZE_Y + 1;
-bool game_over = false;
+//bool game_over = false;
 //Body snakes;
 
 void draw_board() {
@@ -42,7 +42,7 @@ void draw_snake(Body snakes, int y, int x) {
 		mvaddch(curr->get_y(), curr->get_x(), SNAKE);
 		
 		//Collision with body
-		if (curr->get_x() == x && curr->get_y() == y && curr != snakes.get_front()) game_over = true;
+	//	if (curr->get_x() == x && curr->get_y() == y && curr != snakes.get_front()) game_over = true;
 		
 		curr = curr->get_next();
 		attroff(COLOR_PAIR(3));
@@ -128,10 +128,11 @@ void print_highscores() {
 	}
 }
 
-int main() {
+void snake() {
 	Body snakes;
 	int apple_x = rand() % SIZE_X + 1;
 	int apple_y = rand() % SIZE_Y + 1;
+	bool game_over = false;
 	int direction = 2;
 	int points = 0;
 	float speed = 1;
@@ -163,7 +164,7 @@ int main() {
 
 	//Initial Snake
 	for (int i = 0; i < 5; i++)
-    	snakes.add_front((SIZE_Y/2) + i, (SIZE_X/2));
+    	snakes.add_front((SIZE_Y/2), (SIZE_X/2) + i);
 	
 	while (!game_over) {
 		mvprintw(SIZE_Y + 1, 0, "Points: %i", points);
@@ -209,6 +210,12 @@ int main() {
 		if (path_y == SIZE_Y || path_x == SIZE_X || path_y == 0 || path_x == 0)
 			game_over = true;
 		
+		Snake* curr = snakes.get_front();
+		while (curr) {
+			if (curr->get_x() == path_x && curr->get_y() == path_y && curr != snakes.get_front()) game_over = true;
+			curr = curr->get_next();
+		}
+
 		erase();	
 		draw_board();
 		draw_apple(snakes, apple_y, apple_x);
@@ -223,6 +230,5 @@ int main() {
 	getch();
 	refresh();
 	endwin(); // End curses mode
-	return 0;
 }
 
