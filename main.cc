@@ -16,6 +16,7 @@ int main(){
 		cout << "What would you like to play?\nMinesweeper\nPong\nSnake\nTetris\n>";
 		if(was_pong){
 			getline(cin, ignore);
+			was_pong = false;
 		}
 		getline(cin, user_input);
 		indicator = toupper(user_input.at(0));
