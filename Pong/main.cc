@@ -167,8 +167,9 @@ void Pong() {
 		if(mode != 's'){
 			outgoing << quit << " " << my_pad.position.y << " ";
 		}
-		//write ball
+		//write ball and score
 		if(mode == 'c'){
+			outgoing << p1_score << " " << p2_score << " ";
 			outgoing << width - 2 - my_ball.position.x << " " << my_ball.position.y << " ";
 		}
 		//write
@@ -184,7 +185,6 @@ void Pong() {
 		}else if(mode == 'j'){
 			incoming.str(client.read());
 		}
-
 		//update opponent pad and quit
 		if(mode == 's'){	
 			if(my_ball.position.y >= (height - 4)) { ; }
@@ -204,6 +204,11 @@ void Pong() {
 			incoming >> my_opp.position.y;
 		}	
 		
+		//update score
+		if(mode == 'j'){
+			incoming >> p1_score;
+			incoming >> p2_score;
+		}
 		//update ball
 		if(mode == 'c' || mode == 's'){
 			my_ball.update(my_pad, my_opp);
