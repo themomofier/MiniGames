@@ -99,16 +99,17 @@ void Pong() {
 	char mode;
 	cin >> mode;
 	string host = "localhost";
-	string port = "1025";
+	string port = "1026";
 	Internet_Server server;
 	Internet_Client client;
 	if(mode == 'c'){
-		server.start(1025);
+		server.start(1026);
 	}else if (mode == 'j'){
 		client.start(host.c_str(), port.c_str());
 	}
 	stringstream outgoing;
 	stringstream incoming;
+	bool ignore;
 
 	srand(time(0));
 	int row, col;
@@ -129,6 +130,7 @@ void Pong() {
 	motion position(4, height / 2);
 	motion velocity(1,1);
 	ball my_ball(position, velocity);
+	bool quit = false;
 	clear();
 	keypad(stdscr, TRUE);
 	noecho();
@@ -141,13 +143,13 @@ void Pong() {
 	refresh();
 	ch = getch();
 	timeout(100);
-	while(true){	
+	while(!quit){	
 		mvprintw(height + 2, width /2, "Player 1: %u", p1_score);
 		mvprintw(height + 3, width /2, "Player 2: %u", p2_score);
 		mvwaddch(my_win, my_ball.position.y, my_ball.position.x, ' ');
 
 		ch = getch();
-		if(ch == 'q') break;
+		if(ch == 'q') quit = true;
 		my_pad.del_pad(my_win);
 		my_opp.del_pad(my_win);
 		//update my pad
@@ -161,9 +163,9 @@ void Pong() {
 		}
 
 		outgoing.str("");
-		//write my pad
+		//write my pad and quit.
 		if(mode != 's'){
-			outgoing << my_pad.position.y << " ";
+			outgoing << quit << " " << my_pad.position.y << " ";
 		}
 		//write ball
 		if(mode == 'c'){
@@ -183,7 +185,7 @@ void Pong() {
 			incoming.str(client.read());
 		}
 
-		//update opponent pad
+		//update opponent pad and quit
 		if(mode == 's'){	
 			if(my_ball.position.y >= (height - 4)) { ; }
 			else if(my_ball.position.y == 1) { ; }
@@ -197,6 +199,8 @@ void Pong() {
 				my_opp.position.y += direction;
 			}
 		}else{
+			if(!quit) incoming >> quit;
+			else incoming >> ignore;
 			incoming >> my_opp.position.y;
 		}	
 		
